@@ -1,5 +1,5 @@
 import * as d3 from "d3";
-import { useRef, useEffect, useMemo } from "react";
+import { useMemo } from "react";
 
 type DataItem = {
   name: string;

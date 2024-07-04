@@ -1,4 +1,4 @@
-import React, { Suspense, useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 
 import type { Entry } from "./data";
 import { getData } from "./data";
