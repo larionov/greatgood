@@ -88,7 +88,7 @@ export default function PieChart({ width, height, data, colors, className }: Pie
 
   return (
     <svg width={width} height={height} className={className}>
-      <g transform={`translate(${width / 2}, ${height / 2})`}>{shapes}</g>
+      {shapes.length > 0 ? <g transform={`translate(${width / 2}, ${height / 2})`}>{shapes}</g> : null}
     </svg>
   );
 }

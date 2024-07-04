@@ -3,7 +3,16 @@ import React, { Suspense, useState, useEffect } from "react";
 import type { Entry } from "./data";
 import { getData } from "./data";
 import Pie from "./Pie";
-import { IconDocument, IconCheck, IconCheckCircle, IconEllipsis, IconEye } from "./Icons";
+import {
+  IconDocument,
+  IconCheck,
+  IconCheckCircle,
+  IconEllipsis,
+  IconEye,
+  IconQuestion,
+  IconExclamation,
+  IconCross,
+} from "./Icons";
 
 const ChartColors = {
   Approved: "#8bc34b",
@@ -23,28 +32,47 @@ function frequencies(arr: string[]): FrequencyMap {
 }
 
 function dataToPie(data: Entry[], columns: string[]) {
-  const freq = frequencies(data.map((entry) => entry.Status));
+  const freq = frequencies(data.map((entry) => entry.status));
 
-  const res = columns.map((key) => {
-    return {
-      name: key,
-      value: freq[key] ?? 0,
-    };
-  });
+  const res = columns
+    .filter((key) => freq[key] > 0)
+    .map((key) => {
+      return {
+        name: key,
+        value: freq[key] ?? 0,
+      };
+    });
   return res;
 }
 
 function useData() {
   const [data, setData] = useState<Entry[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    getData().then((d) => setData(d));
+    getData()
+      .then((d) => {
+        setData(d);
+
+        setLoading(false);
+      })
+      .catch((e) => {
+        setError(e);
+        setLoading(false);
+      });
   }, []);
-  return data;
+  return { data, loading, error };
 }
 
 function getRiskColor(RiscScore: string) {
-  return { LOW: "text-green-600" }[RiscScore] ?? "";
+  return (
+    {
+      LOW: "text-green-600",
+      MEDIUM: "text-slate-600",
+      HIGH: "text-red-600",
+    }[RiscScore] ?? ""
+  );
 }
 
 function getStatusIcon(Status: string) {
@@ -52,6 +80,7 @@ function getStatusIcon(Status: string) {
   return (
     {
       "In Progress": <IconEllipsis className={iconClass} />,
+      Rejected: <IconCross className={iconClass} />,
       Approved: <IconCheck className={iconClass} />,
     }[Status] ?? <IconEye className={iconClass} />
   );
@@ -62,12 +91,14 @@ function getRiskIcon(Status: string) {
   return (
     {
       LOW: <IconCheckCircle className={iconClass} />,
+      MEDIUM: <IconQuestion className={iconClass} />,
+      HIGH: <IconExclamation className={iconClass} />,
     }[Status] ?? null
   );
 }
 
 const KycReports = () => {
-  const rows = useData();
+  const { data, loading, error } = useData();
   const tableCellStyle = "border-b border-slate-100 p-2";
   return (
     <div className="min-w-min mx-2 my-8 px-8 py-8 bg-white shadow-md rounded-lg overflow-hidden">
@@ -78,7 +109,7 @@ const KycReports = () => {
           width={1000}
           height={600}
           colors={Object.values(ChartColors)}
-          data={dataToPie(rows, Object.keys(ChartColors))}
+          data={dataToPie(data, Object.keys(ChartColors))}
         />
         <table className="table-auto w-full text-left">
           <thead>
@@ -92,43 +123,37 @@ const KycReports = () => {
             </tr>
           </thead>
           <tbody>
-            <Suspense
-              fallback={
-                <tr>
-                  <td>Loading...</td>
+            {data.map((row) => {
+              return (
+                <tr key={row.id}>
+                  <td className={`${tableCellStyle} align-top`}>
+                    {new Date(row.createdAt).toLocaleDateString()}
+                    <div className="text-sm text-slate-600">{new Date(row.createdAt).toLocaleTimeString()}</div>
+                  </td>
+                  <td className={`${tableCellStyle} align-top`}>
+                    {row.name}
+                    <div className="text-sm text-slate-600">{row.email}</div>
+                  </td>
+                  <td className={tableCellStyle}>{row.type}</td>
+                  <td className={tableCellStyle}>
+                    {getRiskIcon(row.riskScoring)}
+                    <span className={getRiskColor(row.riskScoring)}>{row.riskScoring}</span>
+                  </td>
+                  <td className={tableCellStyle}>
+                    {getStatusIcon(row.status)} {row.statusDescription ?? row.status}
+                  </td>
+                  <td className={tableCellStyle}>
+                    <button>
+                      <IconDocument className="size-6" />
+                    </button>
+                  </td>
                 </tr>
-              }
-            >
-              {rows.map((row) => {
-                return (
-                  <tr key={row.id}>
-                    <td className={`${tableCellStyle} align-top`}>
-                      {new Date(row.Created).toLocaleDateString()}
-                      <div className="text-sm text-slate-600">{new Date(row.Created).toLocaleTimeString()}</div>
-                    </td>
-                    <td className={`${tableCellStyle} align-top`}>
-                      {row.Name}
-                      <div className="text-sm text-slate-600">{row.Email}</div>
-                    </td>
-                    <td className={tableCellStyle}>{row.Type}</td>
-                    <td className={tableCellStyle}>
-                      {getRiskIcon(row.RiscScore)}
-                      <span className={getRiskColor(row.RiscScore)}>{row.RiscScore}</span>
-                    </td>
-                    <td className={tableCellStyle}>
-                      {getStatusIcon(row.Status)} {row.StatusDescription ?? row.Status}
-                    </td>
-                    <td className={tableCellStyle}>
-                      <button>
-                        <IconDocument className="size-6" />
-                      </button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </Suspense>
+              );
+            })}
           </tbody>
         </table>
+        {loading && <div className="mt-6 text-slate-500">Loading...</div>}
+        {error && <div className="mt-6 text-red-500">Error loading data</div>}
       </div>
     </div>
   );
