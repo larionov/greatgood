@@ -7,7 +7,6 @@ test.afterAll(async () => {
 test('start page', async ({ page, context }) => {
   await happoPlaywright.init(context);
   await page.goto('http://localhost:4321');
-console.log({page})
 
   await page.getByText('Dominic Rendone');
   const html = page.locator('body');
