@@ -15,9 +15,9 @@ import {
 } from "./Icons";
 
 const ChartColors = {
-  Approved: "#8bc34b",
-  Rejected: "#ff9800",
-  Cancelled: "#ff5722",
+  Approved: "#00c34b",
+  Rejected: "#009800",
+  Cancelled: "#555722",
   "Ready For Review": "#f5f502",
   "In Progress": "#01a9f4",
 };
