@@ -16,8 +16,8 @@ import {
 
 const ChartColors = {
   Approved: "#8bc34b",
-  Rejected: "#009800",
-  Cancelled: "#005722",
+  Rejected: "#ff9800",
+  Cancelled: "#ff5722",
   "Ready For Review": "#f5f502",
   "In Progress": "#01a9f4",
 };
